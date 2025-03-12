@@ -1,0 +1,441 @@
+---
+title: "Chord Diagrams in R"
+author: "Janet Piñero (janet.pinero@disgenet.com)"
+date: "Last update: `r format(Sys.time(), '%d %B, %Y')`"      
+output:
+  html_document:
+    toc: true
+    fig_caption: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE, warning = FALSE, 
+                      message = FALSE, cache.lazy = FALSE)
+```
+
+# Introduction to chord diagrams
+
+A chord diagram is a useful tool for visualizing relationships and connections between different categories or entities.
+
+
+## When to use it   
+Use it when `r emo::ji("heart")`
+
+|      `r emo::ji("+1")` You have many-to-many relationships between two or more groups.    
+|      `r emo::ji("+1")` You want to highlight interconnections rather than individual values.    
+|      `r emo::ji("+1")` Your dataset is complex and requires a clear visual representation of link strength.    
+|      `r emo::ji("+1")` You're dealing with network-like data,    
+  
+
+## When to avoid it
+
+Don't use it when 💔
+
+|      `r emo::ji("-1")` You have too few connections.
+|      `r emo::ji("-1")` Your dataset is too cluttered, making interpretation difficult.
+|      `r emo::ji("-1")` You need to compare precise values, as chord diagrams focus on relationships rather than exact measurements.
+
+
+# The Dataset: Endometriosis and Related Diseases
+
+We will use as an example a dataset of diseases associated to Endometriosis.
+
+## What is Endometriosis?
+
+Endometriosis is a condition in which tissue similar to the lining of the uterus (the endometrium) grows outside of the uterus. This tissue can develop on the:
+
+- Ovaries   
+- Fallopian tubes   
+- Tissue lining the pelvis  
+- In rare cases, areas beyond the pelvic region   
+
+This misplaced tissue behaves like normal endometrial tissue—it thickens, breaks down, and bleeds with each menstrual cycle. However, because this blood has no way to exit the body, it can cause inflammation, scar tissue formation (adhesions), and cysts.
+
+## Diseases Associated with Endometriosis
+Research suggests that endometriosis shares genetic links with various diseases, including:
+
+- Autoimmune diseases, such as Lupus and Rheumatoid arthritis  
+- Mental health conditions, such as Anxiety and Depression  
+- Certain cancers, particularly ovarian cancer  
+- Cardiovascular diseases  
+- Asthma and other allergic conditions  
+
+
+Using [DISGENET](https://disgenet.com/search?view=DISEASES&idents=C0014175&source=ALL&tab=DDA) we can investigate which are the diseases sharing a significant genetic component with **Endometriosis**. We selected a subset of these diseases to visualize their shared genes using a chord diagram.
+
+```{r,  echo=FALSE, message=FALSE, eval=TRUE, cache=F, warning=F}
+
+rm(list =ls())
+library(data.table)
+library(tidyr)
+library(dplyr)
+library(circlize)
+library(chorddiag)
+library(DT)
+library(ggplot2)
+library(ggraph)
+library(tidygraph)
+library(emo)
+library(ComplexHeatmap)
+
+set.seed(314)
+
+ddas <- fread("data/chord_data.tsv")
+
+grouped.diseases <- c(
+  "Endometrioses",
+  # Autoimmune/Inflammatory
+  "Systemic Lupus Erythematosus", "Rheumatoid arthritis", "Sjogren's Syndrome", "Multiple Sclerosis",
+  # Mental Health
+  "Depression", "Anxiety Disorder", "Anorexia",
+  # Pain/Nerve Related
+  "Neuropathy", "Hyperalgesia",
+  # Cardiovascular/Metabolic
+  "Acute myocardial infarction", "NAFLD"
+)
+
+```
+ 
+Our dataset includes  **`r length(grouped.diseases)`** diseases associated with endometriosis (Table 1). The table also lists the number of genes shared between endometriosis and each of the 11 diseases, as well as the genes shared among the 11 diseases themselves.
+
+ 
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=T}
+ 
+tbl <- ddas %>% rename(Shared_Genes = value)
+  datatable(tbl,
+          caption = "Table 1: Diseases associated to Endometrioses",
+          options = list(
+            pageLength = 10,
+            autoWidth = FALSE,
+            columnDefs = list(
+              list(width = '40%', targets = c(0, 1)), # Columns 1 and 2 (0 and 1 index)
+              list(width = '20%', targets = c(2)),       # Column 3 (index 2)
+              list(className = 'dt-center', targets = c( 2)) # Center columns 2 and 3
+            ),
+            stripeClasses = c('odd', 'even')
+          ),
+          rownames = FALSE,
+          class = 'cell-border stripe hover'
+)
+
+```
+
+
+# Chord Diagrams in R 
+
+There are several ways to do a chord diagram in R 
+
+1️⃣ [circlize](https://cran.r-project.org/web/packages/circlize/index.html)    
+2️⃣ [chordiag](https://github.com/mattflor/chorddiag)    
+
+
+## 1. The circlize R pacakge
+
+The default plot. 
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=T}
+
+chordDiagram(ddas  )
+
+```
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=F}
+
+png("images/circlize1.png", height = 600, width = 600) 
+chordDiagram(ddas ,order = grouped.diseases  )
+dev.off()
+
+```
+
+Removing the axis, and highlighting connections for endometriosis. 
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 8, fig.height= 8, fig.align='center',  eval=T}
+
+color.map <- setNames(rep("gray", length(grouped.diseases)), grouped.diseases)  # Set gray for all
+color.map["Endometrioses"] <- "purple"  # Set purple for Endometriosis
+
+chordDiagram(ddas , grid.col = color.map , 
+             annotationTrack =  c("name", "grid"))
+
+```
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=F}
+
+png("images/circlize2.png", height = 600, width = 600) 
+chordDiagram(ddas , grid.col = color.map ,  order = grouped.diseases, 
+             annotationTrack =  c("name", "grid"))
+
+dev.off()
+```
+
+Coloring diseases by groups. 
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 8, fig.height= 8, fig.align='center',  eval=T}
+
+
+grid.col <- c(
+  "Endometrioses" = "purple",
+  
+    # Autoimmune/Inflammatory  
+  "Systemic Lupus Erythematosus" = "#fad1d0",
+  "Rheumatoid arthritis" = "#fad1d0",
+  "Sjogren's Syndrome" = "#fad1d0",
+  "Multiple Sclerosis" = "#fad1d0",
+  
+  # Mental Health (Light Blue)
+  "Depression" = "#6EE2FF",
+  "Anxiety Disorder" = "#6EE2FF",
+  "Anorexia" = "#6EE2FF",
+  
+  # Pain/Nerve Related (Yellow)
+  "Neuropathy" = "#F7C530",
+  "Hyperalgesia" = "#F7C530",
+  
+  # Cardiovascular/Metabolic (Green)
+  "Acute myocardial infarction" = "#95CC5E",
+  "NAFLD" = "#95CC5E"
+)
+
+ 
+chordDiagram(ddas , grid.col = grid.col , 
+             annotationTrack =  c("name", "grid"), order = grouped.diseases)
+
+```
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=F}
+
+png("images/circlize3.png", height = 600, width = 600) 
+chordDiagram(ddas , grid.col = grid.col , 
+             annotationTrack =  c("name", "grid"), order = grouped.diseases)
+
+
+dev.off()
+
+
+```
+
+Removing the color from the links 
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 8, fig.height= 8, fig.align='center',  eval=T}
+
+link.colors <- ifelse(ddas$from == "Endometrioses" | ddas$to == "Endometrioses",
+                      "purple", "gray")
+
+chordDiagram(ddas, grid.col = grid.col , 
+             annotationTrack =  c("name", "grid"), order = grouped.diseases, 
+             col = link.colors )
+
+```
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=F}
+
+png("images/circlize4.png", height = 600, width = 600) 
+
+chordDiagram(ddas, grid.col = grid.col , 
+             annotationTrack =  c("name", "grid"), order = grouped.diseases, 
+             col = link.colors )
+dev.off()
+```
+
+Improving the labels in the plot and rotating them. 
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 10, fig.height= 10, fig.align='center',  eval=T}
+
+
+grid.col.acronym <- setNames(grid.col, 
+                             gsub("Acute myocardial infarction", "AMI", 
+                             gsub("Systemic Lupus Erythematosus", "SLE", 
+                             gsub("Anxiety Disorder", "Anxiety",       
+                             gsub("Sjogren's Syndrome", "SS", names(grid.col))))))
+
+grouped.diseases.acronym <- dplyr::recode(grouped.diseases,
+    "Systemic Lupus Erythematosus" = "SLE",
+    "Acute myocardial infarction" = "AMI",
+    "Anxiety Disorder" = "Anxiety",
+    "Sjogren's Syndrome" = "SS"
+)
+
+ddas.acronym <- ddas %>%
+  mutate(
+    to = recode(to, 
+                "Systemic Lupus Erythematosus" = "SLE", 
+                "Acute myocardial infarction" = "AMI",
+                 "Anxiety Disorder" = "Anxiety",
+                "Sjogren's Syndrome"  = "SS"),
+    from = recode(from, 
+                  "Systemic Lupus Erythematosus" = "SLE", 
+                  "Acute myocardial infarction" = "AMI",
+                   "Anxiety Disorder" = "Anxiety",
+                  "Sjogren's Syndrome" =  "SS")
+  )
+
+
+  
+
+circos.clear()
+
+# Increase label font size
+circos.par(track.height = 0.15, 
+           gap.after = 3,  # Adjust spacing if needed
+           cell.padding = c(0, 0, 0, 0))
+
+# Generate Chord Diagram with larger labels
+chordDiagram(ddas.acronym, 
+             grid.col = grid.col.acronym, 
+             annotationTrack = c( "grid"), 
+             order = grouped.diseases.acronym, 
+             col = link.colors)
+
+# Adjust font size
+circos.track(track.index = 1, panel.fun = function(x, y) {
+  sector.name <- get.cell.meta.data("sector.index")
+  circos.text(CELL_META$xcenter, CELL_META$ylim[1] +1.5, sector.name, 
+              facing = "bending.inside",
+              # facing = "inside",     niceFacing = TRUE, 
+              adj = c(0.5, 0),  # Adjust alignment
+              cex = 1.2,  # Reduce or increase as needed
+              col = "black")  
+}, bg.border = NA)
+
+
+```
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 5, fig.height= 5, fig.align='center',  eval=F}
+
+png("images/circlize5.png", height = 600, width = 600) 
+
+# Increase label font size
+circos.par(track.height = 0.15, 
+           gap.after = 3,  # Adjust spacing if needed
+           cell.padding = c(0, 0, 0, 0))
+
+# Generate Chord Diagram with larger labels
+chordDiagram(ddas.acronym, 
+             grid.col = grid.col.acronym, 
+             annotationTrack = c( "grid"), 
+             order = grouped.diseases.acronym, 
+             col = link.colors)
+
+# Adjust font size
+circos.track(track.index = 1, panel.fun = function(x, y) {
+  sector.name <- get.cell.meta.data("sector.index")
+  circos.text(CELL_META$xcenter, CELL_META$ylim[1] +1.5, sector.name, 
+              facing = "bending.inside",
+              # facing = "inside",     niceFacing = TRUE, 
+              adj = c(0.5, 0),  # Adjust alignment
+              cex = 1.2,  # Reduce or increase as needed
+              col = "black")  
+}, bg.border = NA)
+
+dev.off()
+
+```
+
+
+```{r, results='asis', warning= F, echo=TRUE, message=FALSE ,fig.width= 13, fig.height= 10, fig.align='center',  eval=T}
+
+grid.col.acronym.legend <- setNames(grid.col.acronym, 
+                             gsub( "AMI", "Acute myocardial infarction, AMI",
+                             gsub( "SLE", "Systemic Lupus Erythematosus, SLE",
+                             gsub( "SS", "Sjogren's Syndrome, SS", names(grid.col.acronym)))))
+
+circos.clear()
+
+# Increase label font size
+circos.par(track.height = 0.15, 
+           gap.after = 3,  # Adjust spacing if needed
+           cell.padding = c(0, 0, 0, 0))
+
+```
+
+Adding a legend, I still need to work on this more.
+
+```{r, results='asis', warning= F, echo=FALSE, message=FALSE ,fig.width= 12, fig.height= 10, fig.align='center',  eval=T}
+
+# png("images/circlize6.png", height = 1000, width = 1000) 
+# Generate Chord Diagram with larger labels
+chordDiagram(ddas.acronym, 
+             grid.col = grid.col.acronym, 
+             annotationTrack = c( "grid"), 
+             order = grouped.diseases.acronym, 
+             col = link.colors)
+
+
+
+# Add text and axis
+circos.trackPlotRegion(
+  track.index = 1, 
+  bg.border = NA, 
+  panel.fun = function(x, y) {
+    
+    xlim = get.cell.meta.data("xlim")
+    sector.index = get.cell.meta.data("sector.index")
+    
+    # Add names to the sector. 
+    circos.text(
+      
+      x = mean(xlim), 
+      y = 2, 
+      labels = sector.index, 
+      facing = "bending", 
+      cex = 1
+    )
+  }
+)
+
+# Add Legend
+lgd <- Legend(at = names(grid.col.acronym.legend),  # Labels
+              legend_gp = gpar(fill = grid.col.acronym.legend),  # Colors
+              title = "Diseases")
+
+# draw(lgd, x = unit(1, "npc") - unit(5, "mm"), y = unit(0.5, "npc"), just = c("right", "center"))
+# draw(lgd, x = unit(1, "npc") - unit(5, "mm"), y = unit(1, "npc"), just = c("right", "top"))
+draw(lgd, x = unit(1, "npc") - unit(5, "mm"), y = unit(0.95, "npc"), just = c("right", "top"))
+
+# dev.off() 
+
+
+```
+
+## 2. The chorddiag R pacakge  
+
+Does not allow [label rotation](https://github.com/mattflor/chorddiag/issues/2)! 
+
+```{r,fig.width= 13, fig.height= 10, fig.align='center'}
+
+ddas.acronym <- ddas %>%
+  mutate(
+    to = recode(to, 
+                "Systemic Lupus Erythematosus" = "SLE", 
+                "Acute myocardial infarction" = "AMI",
+                 "Anxiety Disorder" = "Anxiety",
+                 "Multiple Sclerosis" = "MS",
+                 "Rheumatoid arthritis" = "RA",
+                "Sjogren's Syndrome"  = "SS"),
+    from = recode(from, 
+               "Systemic Lupus Erythematosus" = "SLE", 
+                "Acute myocardial infarction" = "AMI",
+                 "Anxiety Disorder" = "Anxiety",
+                 "Multiple Sclerosis" = "MS",
+                 "Rheumatoid arthritis" = "RA",
+                "Sjogren's Syndrome"  = "SS"),
+  )
+
+
+ddas.wide <- ddas.acronym %>%
+  pivot_wider(names_from = to, values_from = value, values_fill = list(value = 0))
+
+# Convert the data to a matrix (for chorddiag)
+matrix_data <- as.matrix(ddas.wide[,-1])  # Remove the 'from' column
+rownames(matrix_data) <- ddas.wide$from    # Add 'from' column as row names
+colnames(matrix_data) <- ddas.wide$from   # Add 'from' column as column names too
+
+# Plot the chord diagram
+chorddiag(matrix_data, width = 800, height = 800)
+
+
+```
+
+
+

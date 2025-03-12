@@ -1,0 +1,67 @@
+from	to	value
+Endometrioses	Anorexia	223
+Endometrioses	Anxiety Disorder	550
+Endometrioses	Rheumatoid arthritis	1046
+Endometrioses	Depression	757
+Endometrioses	Hyperalgesia	220
+Endometrioses	Systemic Lupus Erythematosus	886
+Endometrioses	Multiple Sclerosis	824
+Endometrioses	Acute myocardial infarction	531
+Endometrioses	NAFLD	741
+Endometrioses	Neuropathy	315
+Endometrioses	Sjogren's Syndrome	282
+Anorexia	Anxiety Disorder	241
+Anorexia	Rheumatoid arthritis	308
+Anorexia	Depression	298
+Anorexia	Hyperalgesia	111
+Anorexia	Systemic Lupus Erythematosus	264
+Anorexia	Multiple Sclerosis	268
+Acute myocardial infarction	Anorexia	184
+Anorexia	NAFLD	252
+Anorexia	Neuropathy	138
+Anorexia	Sjogren's Syndrome	127
+Anxiety Disorder	Rheumatoid arthritis	767
+Anxiety Disorder	Depression	1134
+Anxiety Disorder	Hyperalgesia	290
+Anxiety Disorder	Systemic Lupus Erythematosus	666
+Anxiety Disorder	Multiple Sclerosis	691
+Acute myocardial infarction	Anxiety Disorder	414
+Anxiety Disorder	NAFLD	579
+Anxiety Disorder	Neuropathy	346
+Anxiety Disorder	Sjogren's Syndrome	207
+Depression	Rheumatoid arthritis	1093
+Hyperalgesia	Rheumatoid arthritis	283
+Rheumatoid arthritis	Systemic Lupus Erythematosus	1688
+Multiple Sclerosis	Rheumatoid arthritis	1420
+Acute myocardial infarction	Rheumatoid arthritis	792
+NAFLD	Rheumatoid arthritis	1053
+Neuropathy	Rheumatoid arthritis	454
+Rheumatoid arthritis	Sjogren's Syndrome	433
+Depression	Hyperalgesia	334
+Depression	Systemic Lupus Erythematosus	940
+Depression	Multiple Sclerosis	982
+Acute myocardial infarction	Depression	590
+Depression	NAFLD	812
+Depression	Neuropathy	451
+Depression	Sjogren's Syndrome	283
+Hyperalgesia	Systemic Lupus Erythematosus	253
+Hyperalgesia	Multiple Sclerosis	273
+Acute myocardial infarction	Hyperalgesia	165
+Hyperalgesia	NAFLD	192
+Hyperalgesia	Neuropathy	182
+Hyperalgesia	Sjogren's Syndrome	103
+Multiple Sclerosis	Systemic Lupus Erythematosus	1229
+Acute myocardial infarction	Systemic Lupus Erythematosus	673
+NAFLD	Systemic Lupus Erythematosus	862
+Neuropathy	Systemic Lupus Erythematosus	414
+Sjogren's Syndrome	Systemic Lupus Erythematosus	423
+Acute myocardial infarction	Multiple Sclerosis	607
+Multiple Sclerosis	NAFLD	833
+Multiple Sclerosis	Neuropathy	439
+Multiple Sclerosis	Sjogren's Syndrome	361
+Acute myocardial infarction	NAFLD	592
+Acute myocardial infarction	Neuropathy	271
+Acute myocardial infarction	Sjogren's Syndrome	219
+NAFLD	Neuropathy	352
+NAFLD	Sjogren's Syndrome	257
+Neuropathy	Sjogren's Syndrome	135
